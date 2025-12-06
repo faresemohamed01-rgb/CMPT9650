@@ -18,3 +18,5 @@ def clean_data():
     6: 'Summer', 7: 'Summer', 8: 'Summer',
     9: 'Fall', 10: 'Fall', 11: 'Fall'
   })
+
+return restaurant_violations_df_clean
