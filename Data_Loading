@@ -1,0 +1,54 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+from google.cloud import storage
+from io import BytesIO
+import os
+
+from google.cloud import storage
+
+def list_public_bucket(bucket_name, course, project):
+    prefix = f"{course}/Project {project}/"
+
+    client = storage.Client.create_anonymous_client()
+    bucket = client.bucket(bucket_name)
+    blobs = client.list_blobs(bucket, prefix=prefix)
+    print(f"Listing files in public bucket '{bucket_name}' under '{prefix}':")
+    filenames = []
+    for blob in blobs:
+        print(blob.name)
+        filenames.append(blob.name)
+
+    return filenames
+
+def gcs_file_to_dataframe(bucket_name: str, blob_path: str):
+
+    # Anonymous client for public buckets
+    client = storage.Client.create_anonymous_client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_path)
+
+    # Download file content as bytes
+    data = blob.download_as_bytes()
+
+    # Detect file extension
+    _, ext = os.path.splitext(blob_path.lower())
+
+    if ext == ".csv":
+        df = pd.read_csv(BytesIO(data))
+    else:
+        raise ValueError(f"Unsupported file type: {ext}")
+
+    return df
+
+BUCKET_NAME = "msba-online-data"
+PROJECT_NUMBER = "18"
+COURSE = "CIS9650"
+restaurant_violations_raw = list_public_bucket(BUCKET_NAME,COURSE,PROJECT_NUMBER)
+
+for element in restaurant_violations_raw[1:]:
+    restaurant_violations_df = gcs_file_to_dataframe(BUCKET_NAME,  element)
+    print(restaurant_violations_df.head())
+    break
