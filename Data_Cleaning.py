@@ -1,22 +1,28 @@
-def clean_data():
-  restaurant_violations_df_clean = restaurant_violations_df.copy()
+# Create a copy for cleaning
+restaurant_violations_df_clean = restaurant_violations_df.copy()
 
-  restaurant_violations_df_clean['ViolationText'] = restaurant_violations_df_clean['ViolationText'].fillna('Unknown')
-  restaurant_violations_df_clean = restaurant_violations_df_clean.drop_duplicates()
+# Handle missing values
+print("\nMissing values before cleaning:")
+print(restaurant_violations_df_clean.isnull().sum())
 
-  restaurant_violations_df_clean['InspectionDate'] = pd.to_datetime(restaurant_violations_df_clean['InspectionDate'])
-  restaurant_violations_df_clean['Zip'] = restaurant_violations_df_clean['Zip'].astype(str).str[:5]  # Standardize zip codes
+# Fill ViolationText nulls with 'Unknown'
+restaurant_violations_df_clean['ViolationText'] = restaurant_violations_df_clean['ViolationText'].fillna('Unknown')
 
-  restaurant_violations_df_clean['Year'] = restaurant_violations_df_clean['InspectionDate'].dt.year
-  restaurant_violations_df_clean['Month'] = restaurant_violations_df_clean['InspectionDate'].dt.month
-  restaurant_violations_df_clean['MonthName'] = restaurant_violations_df_clean['InspectionDate'].dt.month_name()
-  restaurant_violations_df_clean['Quarter'] = restaurant_violations_df_clean['InspectionDate'].dt.quarter
-  restaurant_violations_df_clean['DayOfWeek'] = restaurant_violations_df_clean['InspectionDate'].dt.day_name()
-  restaurant_violations_df_clean['Season'] = restaurant_violations_df_clean['Month'].map({
-    12: 'Winter', 1: 'Winter', 2: 'Winter',
-    3: 'Spring', 4: 'Spring', 5: 'Spring',
-    6: 'Summer', 7: 'Summer', 8: 'Summer',
-    9: 'Fall', 10: 'Fall', 11: 'Fall'
-  })
+print("\nMissing values after cleaning:")
+print(restaurant_violations_df_clean.isnull().sum())
 
-return restaurant_violations_df_clean
+# Data type conversions
+restaurant_violations_df_clean['InspectionDate'] = pd.to_datetime(restaurant_violations_df_clean['InspectionDate'])
+restaurant_violations_df_clean['Zip'] = restaurant_violations_df_clean['Zip'].astype(str).str[:5]  # Standardize zip codes
+restaurant_violations_df_clean['FacilityName'] = restaurant_violations_df_clean['FacilityName'].apply(
+    lambda x: "Dunkin Donuts" if isinstance(x, str) and "dunkin" in x.lower() else x.title()
+)
+
+# Remove any duplicates
+print(f"\nDuplicates found: {restaurant_violations_df_clean.duplicated().sum()}")
+restaurant_violations_df_clean = restaurant_violations_df_clean.drop_duplicates()
+
+# Data validation
+print(f"\nDate range: {restaurant_violations_df_clean['InspectionDate'].min()} to {restaurant_violations_df_clean['InspectionDate'].max()}")
+print(f"Unique facilities: {restaurant_violations_df_clean['FacilityID'].nunique()}")
+print(f"Unique cities: {restaurant_violations_df_clean['City'].nunique()}")
